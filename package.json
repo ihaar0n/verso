@@ -1,0 +1,51 @@
+{
+  "name": "verso",
+  "productName": "Verso",
+  "version": "1.0.0",
+  "description": "Letras sincronizadas, traducción y subtítulos para cualquier canción o audio.",
+  "main": "main.js",
+  "author": "ax¡d",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.axid.verso",
+    "productName": "Verso",
+    "files": [
+      "main.js",
+      "preload.js",
+      "soporte.json",
+      "lib/**",
+      "src/**",
+      "assets/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png",
+      "artifactName": "Verso-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ihaar0n",
+        "repo": "verso",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ihaar0n/verso.git"
+  },
+  "homepage": "https://github.com/ihaar0n/verso"
+}

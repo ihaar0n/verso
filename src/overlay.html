@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:" />
+  <title>Subtítulos de Verso</title>
+  <style>
+@font-face { font-family: "Bricolage Grotesque"; src: url("fonts/BricolageGrotesque-Regular.ttf") format("truetype"); font-weight: 300 550; font-display: block; }
+@font-face { font-family: "Bricolage Grotesque"; src: url("fonts/BricolageGrotesque-Bold.ttf") format("truetype"); font-weight: 551 900; font-display: block; }
+@font-face { font-family: "Crimson Pro"; src: url("fonts/CrimsonPro-Italic.ttf") format("truetype"); font-style: italic; font-weight: 200 900; font-display: block; }
+
+    :root {
+      --size: 34px;
+      --ink: oklch(0.97 0.012 60);
+      --rose: oklch(0.86 0.08 14);
+      --bg-a: 0.78;
+      --plate: oklch(0.16 0.03 12 / var(--bg-a));
+      --text: var(--ink);
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; user-select: none; }
+    body {
+      display: flex; align-items: flex-end; justify-content: center;
+      font-family: "Bricolage Grotesque", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-app-region: drag;
+      padding: 0 24px 14px;
+      box-sizing: border-box;
+    }
+    .cue {
+      display: grid; justify-items: center; gap: 2px;
+      max-width: 100%;
+      text-align: center;
+      transition: opacity 180ms ease, transform 220ms var(--ease-out), filter 180ms ease;
+    }
+    .cue.swap { opacity: 0; transform: translateY(6px); filter: blur(2px); }
+    .cue.empty { opacity: 0; }
+    .line {
+      display: inline; padding: 0.06em 0.36em;
+      box-decoration-break: clone; -webkit-box-decoration-break: clone;
+      background: var(--plate); border-radius: 0.22em;
+      line-height: 1.42; text-wrap: balance;
+    }
+    body.top { align-items: flex-start; padding: 14px 24px 0; }
+    .orig { font-size: var(--size); font-weight: 700; color: var(--text); letter-spacing: -0.01em; text-shadow: 0 1px 2px oklch(0 0 0 / calc(0.6 - var(--bg-a) * 0.6)); }
+    .tr { font-family: "Crimson Pro", Georgia, serif; font-style: italic; font-weight: 500; font-size: calc(var(--size) * 0.78); color: var(--rose); }
+    .tr { text-shadow: 0 1px 2px oklch(0 0 0 / calc(0.6 - var(--bg-a) * 0.6)); }
+    body[data-mode="translated"] .tr { font-family: inherit; font-style: normal; font-weight: 700; font-size: var(--size); color: var(--text); letter-spacing: -0.01em; }
+    .grip {
+      position: fixed; top: 8px; right: 8px; display: flex; gap: 6px;
+      opacity: 0; transition: opacity 160ms ease;
+    }
+    body:not(.locked):hover .grip { opacity: 1; }
+    .grip span, .grip button {
+      height: 28px; padding: 0 10px; border: 0; border-radius: 7px;
+      display: grid; place-items: center;
+      background: var(--plate); color: var(--ink); font: 600 12px/1 inherit;
+    }
+    .grip button { -webkit-app-region: no-drag; cursor: pointer; }
+    .line[hidden], .hint[hidden] { display: none; }
+    .hint { position: fixed; inset: 0; display: grid; place-items: center; color: var(--ink); font-weight: 600; font-size: 14px; }
+    .hint span { padding: 8px 12px; background: var(--plate); border-radius: 8px; }
+    @media (prefers-reduced-motion: reduce) { .cue, .cue.swap { transform: none; filter: none; } }
+  </style>
+</head>
+<body data-mode="both">
+  <div class="grip"><span id="dragTxt">Arrastra para mover</span><button id="close">Cerrar</button></div>
+  <div class="hint" id="hint"><span id="waitTxt">Los subtítulos aparecerán aquí</span></div>
+  <div class="cue empty" id="cue"><span class="line orig" id="orig"></span><span class="line tr" id="tr"></span></div>
+  <script src="i18n.js"></script>
+  <script src="overlay.js"></script>
+</body>
+</html>

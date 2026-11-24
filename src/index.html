@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; media-src 'self' file: blob:; connect-src 'self'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verso</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" fill="currentColor"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M11 7 6 12l5 5M18 7l-5 5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-fwd" viewBox="0 0 24 24"><path d="m13 7 5 5-5 5M6 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-float" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 15h6M15.5 15H17M7 11.5h3M12.5 11.5H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-sync" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9.5V13l2.2 1.6M10 3.5h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.8-1.4-1.8-3.1-2.2.8a7.5 7.5 0 0 0-2.6-1.5L14.2 3h-3.6l-.4 2.3a7.5 7.5 0 0 0-2.6 1.5l-2.2-.8-1.8 3.1 1.8 1.4a7.6 7.6 0 0 0 0 3l-1.8 1.4 1.8 3.1 2.2-.8a7.5 7.5 0 0 0 2.6 1.5l.4 2.3h3.6l.4-2.3a7.5 7.5 0 0 0 2.6-1.5l2.2.8 1.8-3.1-1.8-1.4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+      <symbol id="i-live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M8.2 8.2a5.4 5.4 0 0 0 0 7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.4 5.4a9.3 9.3 0 0 0 0 13.2M18.6 5.4a9.3 9.3 0 0 1 0 13.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11m0-11-11 11" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="18" cy="12" r="1.6" fill="currentColor"/></symbol>
+      <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16.9" r="1" fill="currentColor"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 15V6a1 1 0 0 1 1-1h9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5.5 12.5 4 4 9-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    </defs>
+  </svg>
+
+  <!-- Inicio: animación y elección de idioma -->
+  <div class="intro" id="intro" aria-modal="true" role="dialog" aria-labelledby="introAsk">
+    <div class="intro-inner">
+      <div class="intro-mark" aria-hidden="true"><span>V</span><span>e</span><span>r</span><span>s</span><span>o</span></div>
+      <div class="intro-lyric" aria-hidden="true">
+        <p class="il" id="ilA">Bailamos hasta que el sol se canse</p>
+        <p class="il-tr" id="ilB">We danced until the sun got tired</p>
+      </div>
+      <div class="intro-pick" id="introPick">
+        <p class="intro-ask" id="introAsk"><span lang="es">¿En qué idioma quieres Verso?</span><span lang="en">Which language do you want Verso in?</span></p>
+        <div class="intro-langs" role="radiogroup" aria-labelledby="introAsk">
+          <button class="lang-btn" data-lang="es" lang="es"><span class="lang-name">Español</span><span class="lang-sub">La app y las traducciones, en español</span></button>
+          <button class="lang-btn" data-lang="en" lang="en"><span class="lang-name">English</span><span class="lang-sub">App and translations in English</span></button>
+        </div>
+        <label class="check intro-remember"><input type="checkbox" id="introRemember" /><span id="introRememberText">No volver a preguntar al abrir</span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app" data-view="empty">
+    <header class="titlebar">
+      <div class="wordmark" aria-label="Verso">Verso</div>
+    </header>
+
+    <aside class="library">
+      <div class="library-actions">
+        <button class="btn btn-primary" id="btnOpen"><svg><use href="#i-file"/></svg><span data-i18n="side.open"></span></button>
+        <button class="btn btn-quiet" id="btnLive"><svg><use href="#i-live"/></svg><span id="btnLiveText" data-i18n="side.live"></span></button>
+      </div>
+      <h2 class="library-title" data-i18n="side.library"></h2>
+      <ul class="library-list" id="libraryList"></ul>
+      <p class="library-empty" id="libraryEmpty" data-i18n="side.empty"></p>
+      <div class="library-foot">
+        <button class="btn btn-ghost" id="btnSettings"><svg><use href="#i-gear"/></svg><span data-i18n="side.settings"></span></button>
+        <button class="btn btn-ghost" id="btnHelp"><svg><use href="#i-help"/></svg><span data-i18n="side.help"></span></button>
+      </div>
+    </aside>
+
+    <main class="stage" id="stage">
+      <section class="view view-empty" id="viewEmpty">
+        <div class="hero">
+          <div class="hero-demo" aria-hidden="true">
+            <p class="demo-line demo-prev" data-i18n="hero.demo.prev"></p>
+            <p class="demo-line demo-now"><span data-i18n="hero.demo.now"></span><span class="demo-tr" data-i18n="hero.demo.tr"></span></p>
+            <p class="demo-line demo-next" data-i18n="hero.demo.next"></p>
+          </div>
+          <h1 class="hero-title" data-i18n="hero.title"></h1>
+          <p class="hero-sub" data-i18n="hero.sub"></p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" id="btnOpenHero" data-i18n="hero.open"></button>
+            <button class="btn btn-quiet btn-lg" id="btnLiveHero" data-i18n="hero.live"></button>
+          </div>
+          <p class="hero-key" id="heroKey" hidden>
+            <span data-i18n="hero.key"></span>
+            <button class="link" id="btnHeroKey" data-i18n="hero.addKey"></button>
+          </p>
+        </div>
+        <div class="drop-veil" id="dropVeil"><p data-i18n="drop"></p></div>
+      </section>
+
+      <section class="view view-work" id="viewWork" hidden>
+        <div class="work">
+          <p class="work-song" id="workSong"></p>
+          <ol class="steps" id="steps">
+            <li data-step="read"><span class="dot"></span><span class="label" data-i18n="step.read"></span><span class="note"></span></li>
+            <li data-step="lyrics"><span class="dot"></span><span class="label" data-i18n="step.lyrics"></span><span class="note"></span></li>
+            <li data-step="transcribe"><span class="dot"></span><span class="label" data-i18n="step.transcribe"></span><span class="note"></span></li>
+            <li data-step="translate"><span class="dot"></span><span class="label" data-i18n="step.translate"></span><span class="note"></span></li>
+            <li data-step="review"><span class="dot"></span><span class="label" data-i18n="step.review"></span><span class="note"></span></li>
+          </ol>
+          <div class="progress" id="workProgress"><span></span></div>
+          <button class="btn btn-ghost" id="btnCancel" data-i18n="cancel"></button>
+        </div>
+      </section>
+
+      <section class="view view-lyrics" id="viewLyrics" hidden>
+        <div class="song-head">
+          <div>
+            <h1 class="song-title" id="songTitle"></h1>
+            <p class="song-meta"><span id="songArtist"></span><span class="song-source" id="songSource"></span><span class="song-hint" id="songHint" data-i18n="lyrics.editHint"></span></p>
+          </div>
+          <div class="song-actions">
+            <button class="btn btn-ghost btn-sm" id="btnLyricsMenu" aria-haspopup="menu" data-i18n="lyrics.change"></button>
+            <div class="menu" id="lyricsMenu" role="menu" hidden>
+              <button role="menuitem" data-act="research" data-i18n="menu.research"></button>
+              <button role="menuitem" data-act="transcribe" data-i18n="menu.transcribe"></button>
+              <button role="menuitem" data-act="import" data-i18n="menu.import"></button>
+              <button role="menuitem" data-act="retranslate" data-i18n="menu.retranslate"></button>
+              <button role="menuitem" data-act="remove" class="danger" data-i18n="menu.remove"></button>
+            </div>
+          </div>
+        </div>
+        <div class="unsynced-note" id="unsyncedNote" hidden>
+          <span data-i18n="unsynced"></span>
+          <button class="link" id="btnSyncAI" data-i18n="unsynced.fix"></button>
+        </div>
+        <form class="search-lyrics" id="searchForm" hidden>
+          <p class="search-msg" id="searchMsg"></p>
+          <div class="search-row">
+            <input name="title" data-i18n-ph="search.title" spellcheck="false" />
+            <input name="artist" data-i18n-ph="search.artist" spellcheck="false" />
+            <button class="btn btn-primary btn-sm" type="submit" data-i18n="search.go"></button>
+          </div>
+          <p class="search-alt"><span data-i18n="search.or"></span> <button type="button" class="link" data-act="transcribe" data-i18n="search.transcribe"></button> <span data-i18n="search.and"></span> <button type="button" class="link" data-act="import" data-i18n="search.import"></button>.</p>
+        </form>
+        <div class="lyrics-viewport" id="lyricsViewport">
+          <ol class="lyrics" id="lyrics"></ol>
+        </div>
+        <button class="btn btn-quiet btn-sm follow" id="btnFollow" hidden data-i18n="follow"></button>
+      </section>
+
+      <section class="view view-live" id="viewLive" hidden>
+        <div class="live-head">
+          <span class="live-badge"><span class="live-dot"></span><span data-i18n="live.badge"></span></span>
+          <span class="meter" aria-hidden="true"><span id="liveMeter"></span></span>
+          <button class="btn btn-ghost btn-sm" id="btnLiveStop" data-i18n="live.stop"></button>
+        </div>
+        <ol class="live-cues" id="liveCues"></ol>
+        <p class="live-hint" id="liveHint" data-i18n="live.hint"></p>
+      </section>
+    </main>
+
+    <footer class="dock" id="dock">
+      <div class="transport">
+        <button class="icon-btn" id="btnBack" data-i18n-aria="aria.back"><svg><use href="#i-back"/></svg></button>
+        <button class="play" id="btnPlay" data-i18n-aria="aria.play"><svg><use href="#i-play" id="playIcon"/></svg></button>
+        <button class="icon-btn" id="btnFwd" data-i18n-aria="aria.fwd"><svg><use href="#i-fwd"/></svg></button>
+      </div>
+      <div class="scrub">
+        <span class="time" id="timeCur">0:00</span>
+        <div class="wave" id="wave" role="slider" tabindex="0" data-i18n-aria="aria.position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <canvas id="waveCanvas"></canvas>
+          <span class="wave-tip" id="waveTip">0:00</span>
+        </div>
+        <span class="time" id="timeDur">0:00</span>
+      </div>
+      <div class="dock-right">
+        <div class="seg" id="viewSeg" role="radiogroup" data-i18n-aria="aria.view">
+          <span class="seg-ind" id="segInd"></span>
+          <button role="radio" data-v="original" data-i18n="seg.original"></button>
+          <button role="radio" data-v="translated" id="segTarget"></button>
+          <button role="radio" data-v="both" data-i18n="seg.both"></button>
+        </div>
+        <div class="pop-wrap">
+          <button class="icon-btn" id="btnSync" data-i18n-aria="aria.sync" aria-haspopup="dialog"><svg><use href="#i-sync"/></svg></button>
+          <div class="pop" id="syncPop" hidden>
+            <p class="pop-title" data-i18n="sync.title"></p>
+            <p class="pop-help" data-i18n="sync.help"></p>
+            <div class="offset">
+              <button class="btn btn-quiet btn-sm" data-off="-0.5">−0,5 s</button>
+              <output id="offsetOut">0,0 s</output>
+              <button class="btn btn-quiet btn-sm" data-off="0.5">+0,5 s</button>
+            </div>
+            <button class="link" id="btnOffsetReset" data-i18n="sync.reset"></button>
+            <p class="pop-title pop-gap" data-i18n="speed.title"></p>
+            <div class="speeds" id="speeds">
+              <button data-rate="0.5">0,5×</button><button data-rate="0.75">0,75×</button><button data-rate="1">1×</button><button data-rate="1.25">1,25×</button>
+            </div>
+            <label class="check pop-check"><input type="checkbox" id="loopLine" /><span data-i18n="loop.label"></span></label>
+          </div>
+        </div>
+        <button class="icon-btn" id="btnFloat" data-i18n-aria="aria.float" aria-pressed="false"><svg><use href="#i-float"/></svg></button>
+        <div class="pop-wrap">
+          <button class="icon-btn" id="btnExport" data-i18n-aria="aria.export" aria-haspopup="menu"><svg><use href="#i-export"/></svg></button>
+          <div class="menu menu-up" id="exportMenu" role="menu" hidden>
+            <button role="menuitem" data-f="srt" data-m="translated" data-i18n="exp.srtTr"></button>
+            <button role="menuitem" data-f="srt" data-m="original" data-i18n="exp.srtOr"></button>
+            <button role="menuitem" data-f="srt" data-m="both" data-i18n="exp.srtBoth"></button>
+            <button role="menuitem" data-f="lrc" data-m="original" data-i18n="exp.lrcOr"></button>
+            <button role="menuitem" data-f="lrc" data-m="translated" data-i18n="exp.lrcTr"></button>
+          </div>
+        </div>
+      </div>
+      <audio id="audio" preload="auto"></audio>
+    </footer>
+
+    <div class="scrim" id="scrim" hidden></div>
+    <aside class="drawer" id="drawer" aria-hidden="true" aria-labelledby="setTitle" role="dialog" tabindex="-1">
+      <div class="drawer-head">
+        <h2 id="setTitle" data-i18n="set.title"></h2>
+        <span class="autosave" id="autosave" data-i18n="set.autosave"></span>
+        <button class="icon-btn" id="btnDrawerClose" data-i18n-aria="aria.closeSettings"><svg><use href="#i-close"/></svg></button>
+      </div>
+      <div class="drawer-main">
+        <nav class="set-nav" role="tablist" aria-orientation="vertical">
+          <button role="tab" data-tab="general" data-i18n="tab.general"></button>
+          <button role="tab" data-tab="look" data-i18n="tab.look"></button>
+          <button role="tab" data-tab="ai" data-i18n="tab.ai"></button>
+          <button role="tab" data-tab="overlay" data-i18n="tab.overlay"></button>
+          <button role="tab" data-tab="keys" data-i18n="tab.keys"></button>
+          <button role="tab" data-tab="data" data-i18n="tab.data"></button>
+          <button role="tab" data-tab="help" data-i18n="tab.help"></button>
+        </nav>
+        <form class="drawer-body" id="settingsForm" autocomplete="off">
+
+          <section class="set-pane" data-pane="general" role="tabpanel">
+            <fieldset>
+              <legend data-i18n="set.appLang"></legend>
+              <div class="pills">
+                <label><input type="radio" name="uiLang" value="es" /><span lang="es">Español</span></label>
+                <label><input type="radio" name="uiLang" value="en" /><span lang="en">English</span></label>
+              </div>
+              <label class="check"><input type="checkbox" name="askLang" /><span data-i18n="set.askLang"></span></label>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.playback"></legend>
+              <label class="check"><input type="checkbox" name="autoplay" /><span data-i18n="set.autoplay"></span></label>
+              <label class="check"><input type="checkbox" name="clickSeek" /><span data-i18n="set.clickSeek"></span></label>
+              <label class="field">
+                <span><span data-i18n="set.follow"></span> <output id="followOut"></output></span>
+                <input type="range" name="followDelay" min="2" max="15" step="1" />
+              </label>
+            </fieldset>
+          </section>
+
+          <section class="set-pane" data-pane="look" role="tabpanel" hidden>
+            <div class="preview" id="lookPreview" aria-hidden="true">
+              <p class="pv-line pv-dim"><span class="lo" data-i18n="pv.prev"></span></p>
+              <p class="pv-line"><span class="lo" data-i18n="pv.now"></span><span class="lt" data-i18n="pv.tr"></span><span class="line-bar"><i></i></span></p>
+            </div>
+            <fieldset>
+              <legend data-i18n="set.theme"></legend>
+              <div class="themes">
+                <label><input type="radio" name="theme" value="vino" /><span class="th th-vino"><i></i></span><b data-i18n="theme.vino"></b></label>
+                <label><input type="radio" name="theme" value="noche" /><span class="th th-noche"><i></i></span><b data-i18n="theme.noche"></b></label>
+                <label><input type="radio" name="theme" value="papel" /><span class="th th-papel"><i></i></span><b data-i18n="theme.papel"></b></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.accent"></legend>
+              <div class="swatches">
+                <label><input type="radio" name="accent" value="mantequilla" /><span class="sw" style="--c: oklch(0.89 0.12 92)"></span><b data-i18n="accent.mantequilla"></b></label>
+                <label><input type="radio" name="accent" value="rosa" /><span class="sw" style="--c: oklch(0.8 0.11 10)"></span><b data-i18n="accent.rosa"></b></label>
+                <label><input type="radio" name="accent" value="mandarina" /><span class="sw" style="--c: oklch(0.8 0.14 55)"></span><b data-i18n="accent.mandarina"></b></label>
+                <label><input type="radio" name="accent" value="menta" /><span class="sw" style="--c: oklch(0.86 0.11 165)"></span><b data-i18n="accent.menta"></b></label>
+                <label><input type="radio" name="accent" value="cielo" /><span class="sw" style="--c: oklch(0.84 0.09 235)"></span><b data-i18n="accent.cielo"></b></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.lyrics"></legend>
+              <div class="row-field">
+                <span data-i18n="set.lyricSize"></span>
+                <div class="pills">
+                  <label><input type="radio" name="lyricSize" value="s" /><span>S</span></label>
+                  <label><input type="radio" name="lyricSize" value="m" /><span>M</span></label>
+                  <label><input type="radio" name="lyricSize" value="l" /><span>L</span></label>
+                  <label><input type="radio" name="lyricSize" value="xl" /><span>XL</span></label>
+                </div>
+              </div>
+              <div class="row-field">
+                <span data-i18n="set.align"></span>
+                <div class="pills">
+                  <label><input type="radio" name="lyricAlign" value="left" /><span data-i18n="align.left"></span></label>
+                  <label><input type="radio" name="lyricAlign" value="center" /><span data-i18n="align.center"></span></label>
+                </div>
+              </div>
+              <div class="row-field">
+                <span data-i18n="set.trStyle"></span>
+                <div class="pills">
+                  <label><input type="radio" name="trStyle" value="serif" /><span data-i18n="trStyle.serif"></span></label>
+                  <label><input type="radio" name="trStyle" value="sans" /><span data-i18n="trStyle.sans"></span></label>
+                </div>
+              </div>
+              <label class="check"><input type="checkbox" name="lineBar" /><span data-i18n="set.lineBar"></span></label>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.motion"></legend>
+              <div class="pills">
+                <label><input type="radio" name="motion" value="full" /><span data-i18n="motion.full"></span></label>
+                <label><input type="radio" name="motion" value="reduced" /><span data-i18n="motion.reduced"></span></label>
+              </div>
+            </fieldset>
+          </section>
+
+          <section class="set-pane" data-pane="ai" role="tabpanel" hidden>
+            <fieldset>
+              <legend data-i18n="set.translation"></legend>
+              <label class="field">
+                <span data-i18n="set.target"></span>
+                <select name="target" id="target"></select>
+              </label>
+              <label class="check check-top"><input type="checkbox" name="review" /><span><span data-i18n="set.review"></span><small data-i18n="set.reviewSub"></small></span></label>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.service"></legend>
+              <div class="choice">
+                <label><input type="radio" name="provider" value="groq" /><span><b>Groq</b><small data-i18n="set.groq.sub"></small></span></label>
+                <label><input type="radio" name="provider" value="openai" /><span><b>OpenAI</b><small data-i18n="set.openai.sub"></small></span></label>
+              </div>
+              <label class="field">
+                <span data-i18n="set.key"></span>
+                <input type="password" name="apiKey" id="apiKey" spellcheck="false" />
+                <small><span data-i18n="set.keyHelp"></span> <button type="button" class="link" id="btnGetKey"></button></small>
+              </label>
+              <div><button type="button" class="btn btn-quiet btn-sm" id="btnTest" data-i18n="set.test"></button></div>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.translator"></legend>
+              <div class="choice">
+                <label><input type="radio" name="translator" value="provider" /><span><b data-i18n="set.provider"></b><small data-i18n="set.provider.sub"></small></span></label>
+                <label><input type="radio" name="translator" value="ollama" /><span><b data-i18n="set.ollama"></b><small data-i18n="set.ollama.sub"></small></span></label>
+              </div>
+              <div class="ollama" id="ollamaFields">
+                <label class="field"><span data-i18n="set.ollamaModel"></span><input name="ollamaModel" placeholder="qwen2.5:7b" spellcheck="false" /></label>
+                <label class="field"><span data-i18n="set.ollamaUrl"></span><input name="ollamaUrl" placeholder="http://localhost:11434" spellcheck="false" /></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.live"></legend>
+              <div class="choice">
+                <label><input type="radio" name="liveChunk" value="fast" /><span><b data-i18n="live.fast"></b><small data-i18n="live.fast.sub"></small></span></label>
+                <label><input type="radio" name="liveChunk" value="balanced" /><span><b data-i18n="live.balanced"></b><small data-i18n="live.balanced.sub"></small></span></label>
+                <label><input type="radio" name="liveChunk" value="precise" /><span><b data-i18n="live.precise"></b><small data-i18n="live.precise.sub"></small></span></label>
+              </div>
+            </fieldset>
+            <details class="advanced">
+              <summary data-i18n="set.models"></summary>
+              <label class="field"><span data-i18n="set.stt"></span><input name="sttModel" id="sttModel" spellcheck="false" /></label>
+              <label class="field"><span data-i18n="set.chat"></span><input name="chatModel" id="chatModel" spellcheck="false" /></label>
+              <small data-i18n="set.modelsHelp"></small>
+            </details>
+          </section>
+
+          <section class="set-pane" data-pane="overlay" role="tabpanel" hidden>
+            <div class="preview preview-ov" id="ovPreview" aria-hidden="true">
+              <div class="ovp"><span class="ovp-line ovp-or" data-i18n="pv.now"></span><span class="ovp-line ovp-tr" data-i18n="pv.tr"></span></div>
+            </div>
+            <fieldset>
+              <legend data-i18n="set.ovShow"></legend>
+              <div class="pills pills-wrap">
+                <label><input type="radio" name="overlayView" value="follow" /><span data-i18n="ov.follow"></span></label>
+                <label><input type="radio" name="overlayView" value="original" /><span data-i18n="seg.original"></span></label>
+                <label><input type="radio" name="overlayView" value="translated" /><span data-i18n="ov.translated"></span></label>
+                <label><input type="radio" name="overlayView" value="both" /><span data-i18n="seg.both"></span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.ovLook"></legend>
+              <label class="field">
+                <span><span data-i18n="set.size"></span> <output id="sizeOut"></output></span>
+                <input type="range" name="overlaySize" min="20" max="72" step="2" />
+              </label>
+              <label class="field">
+                <span><span data-i18n="set.ovBg"></span> <output id="bgOut"></output></span>
+                <input type="range" name="overlayBg" min="0" max="100" step="5" />
+              </label>
+              <div class="row-field">
+                <span data-i18n="set.ovColor"></span>
+                <div class="pills">
+                  <label><input type="radio" name="overlayColor" value="white" /><span data-i18n="ovc.white"></span></label>
+                  <label><input type="radio" name="overlayColor" value="yellow" /><span data-i18n="ovc.yellow"></span></label>
+                  <label><input type="radio" name="overlayColor" value="accent" /><span data-i18n="ovc.accent"></span></label>
+                </div>
+              </div>
+              <div class="row-field">
+                <span data-i18n="set.ovPos"></span>
+                <div class="pills">
+                  <label><input type="radio" name="overlayPos" value="bottom" /><span data-i18n="pos.bottom"></span></label>
+                  <label><input type="radio" name="overlayPos" value="top" /><span data-i18n="pos.top"></span></label>
+                </div>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.ovBehave"></legend>
+              <label class="check"><input type="checkbox" name="overlayLocked" /><span data-i18n="set.lock"></span></label>
+              <label class="check check-top"><input type="checkbox" name="overlayShortcut" /><span><span data-i18n="set.ovShortcut"></span><small data-i18n="set.ovShortcutSub"></small></span></label>
+            </fieldset>
+          </section>
+
+          <section class="set-pane" data-pane="keys" role="tabpanel" hidden>
+            <p class="pane-intro" data-i18n="keys.intro"></p>
+            <dl class="keys">
+              <div><dt><kbd data-i18n="kbd.space"></kbd></dt><dd data-i18n="keys.play"></dd></div>
+              <div><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd data-i18n="keys.seek"></dd></div>
+              <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd data-i18n="keys.view"></dd></div>
+              <div><dt><kbd>R</kbd></dt><dd data-i18n="keys.loop"></dd></div>
+              <div><dt><kbd>[</kbd> <kbd>]</kbd></dt><dd data-i18n="keys.speed"></dd></div>
+              <div><dt><kbd>F</kbd></dt><dd data-i18n="keys.float"></dd></div>
+              <div><dt><kbd>Ctrl</kbd> <kbd>O</kbd></dt><dd data-i18n="keys.open"></dd></div>
+              <div><dt><kbd>Ctrl</kbd> <kbd>,</kbd></dt><dd data-i18n="keys.settings"></dd></div>
+              <div><dt><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>S</kbd></dt><dd data-i18n="keys.global"></dd></div>
+              <div><dt data-i18n="keys.dbl"></dt><dd data-i18n="keys.edit"></dd></div>
+            </dl>
+          </section>
+
+          <section class="set-pane" data-pane="data" role="tabpanel" hidden>
+            <fieldset>
+              <legend data-i18n="set.dataLib"></legend>
+              <p class="pane-intro" id="libStats"></p>
+              <div><button type="button" class="btn btn-quiet btn-sm danger-btn" id="btnClearLib" data-i18n="data.clearLib"></button></div>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="set.dataReset"></legend>
+              <p class="pane-intro" data-i18n="data.resetHelp"></p>
+              <div><button type="button" class="btn btn-quiet btn-sm danger-btn" id="btnReset" data-i18n="data.reset"></button></div>
+            </fieldset>
+          </section>
+          <section class="set-pane" data-pane="help" role="tabpanel" hidden>
+            <p class="pane-intro" data-i18n="help.intro"></p>
+            <div class="help-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="btnHelpReport" data-i18n="help.report"></button>
+              <button type="button" class="btn btn-quiet btn-sm" id="btnLogs" data-i18n="help.logs"></button>
+            </div>
+            <fieldset class="tips">
+              <legend data-i18n="help.check"></legend>
+              <ul>
+                <li data-i18n="help.tip1"></li>
+                <li data-i18n="help.tip2"></li>
+                <li data-i18n="help.tip3"></li>
+                <li data-i18n="help.tip4"></li>
+              </ul>
+            </fieldset>
+            <p class="pane-intro version" id="appVersion"></p>
+          </section>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Reportar un problema -->
+    <dialog class="report" id="report" aria-labelledby="repTitle">
+      <form method="dialog" class="report-in">
+        <div class="report-head">
+          <h2 id="repTitle" data-i18n="sup.title"></h2>
+          <button class="icon-btn" value="close" data-i18n-aria="sup.close"><svg><use href="#i-close"/></svg></button>
+        </div>
+        <p class="report-intro" id="repIntro"></p>
+        <div class="report-error" id="repError" hidden><span data-i18n="sup.error"></span><code id="repErrorText"></code></div>
+        <label class="field">
+          <span data-i18n="sup.whatLabel"></span>
+          <textarea id="repNote" rows="2" data-i18n-ph="sup.whatPh"></textarea>
+        </label>
+        <ol class="report-steps">
+          <li>
+            <div><b data-i18n="sup.s1"></b><small data-i18n="sup.s1.sub"></small>
+              <details class="report-preview"><summary data-i18n="sup.see"></summary><pre id="repText"></pre></details>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="btnRepCopy"><svg><use href="#i-copy"/></svg><span data-i18n="sup.copy"></span></button>
+          </li>
+          <li>
+            <div><b data-i18n="sup.s2"></b><small data-i18n="sup.s2.sub"></small></div>
+            <button type="button" class="btn btn-quiet btn-sm" id="btnRepDiscord" data-i18n="sup.join"></button>
+          </li>
+          <li>
+            <div><b data-i18n="sup.s3"></b><small data-i18n="sup.s3.sub"></small></div>
+          </li>
+        </ol>
+      </form>
+    </dialog>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="audio.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
