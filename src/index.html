@@ -37,6 +37,20 @@
         <p class="il" id="ilA">Bailamos hasta que el sol se canse</p>
         <p class="il-tr" id="ilB">We danced until the sun got tired</p>
       </div>
+      <div class="intro-key" id="introKey" hidden>
+        <h2 class="ik-title" data-i18n="ob.title"></h2>
+        <p class="ik-sub" data-i18n="ob.sub"></p>
+        <ol class="ik-steps">
+          <li><span data-i18n="ob.s1"></span><button type="button" class="btn btn-quiet btn-sm" id="obOpen" data-i18n="ob.open"></button></li>
+          <li><span data-i18n="ob.s2"></span></li>
+          <li><span data-i18n="ob.s3"></span><input type="password" id="obKey" data-i18n-ph="ob.ph" spellcheck="false" autocomplete="off" /></li>
+        </ol>
+        <p class="ik-error" id="obError" hidden></p>
+        <div class="ik-actions">
+          <button type="button" class="btn btn-primary btn-lg" id="obSave" data-i18n="ob.save"></button>
+          <button type="button" class="btn btn-ghost btn-lg" id="obLater" data-i18n="ob.later"></button>
+        </div>
+      </div>
       <div class="intro-pick" id="introPick">
         <p class="intro-ask" id="introAsk"><span lang="es">¿En qué idioma quieres Verso?</span><span lang="en">Which language do you want Verso in?</span></p>
         <div class="intro-langs" role="radiogroup" aria-labelledby="introAsk">
@@ -124,6 +138,14 @@
         <div class="unsynced-note" id="unsyncedNote" hidden>
           <span data-i18n="unsynced"></span>
           <button class="link" id="btnSyncAI" data-i18n="unsynced.fix"></button>
+        </div>
+        <div class="key-cta" id="keyCta" hidden>
+          <b data-i18n="cta.title"></b>
+          <p data-i18n="cta.body"></p>
+          <div class="key-cta-row">
+            <button class="btn btn-primary btn-sm" id="btnCtaKey" data-i18n="cta.button"></button>
+            <span class="key-cta-live"><span data-i18n="cta.live"></span> <button class="link" id="btnCtaLive" data-i18n="cta.liveBtn"></button>.</span>
+          </div>
         </div>
         <form class="search-lyrics" id="searchForm" hidden>
           <p class="search-msg" id="searchMsg"></p>
@@ -467,11 +489,15 @@
             </div>
             <button type="button" class="btn btn-primary btn-sm" id="btnRepCopy"><svg><use href="#i-copy"/></svg><span data-i18n="sup.copy"></span></button>
           </li>
-          <li>
+          <li id="repStepDiscord">
             <div><b data-i18n="sup.s2"></b><small data-i18n="sup.s2.sub"></small></div>
             <button type="button" class="btn btn-quiet btn-sm" id="btnRepDiscord" data-i18n="sup.join"></button>
           </li>
-          <li>
+          <li id="repStepGithub" hidden>
+            <div><b data-i18n="sup.s2gh"></b><small data-i18n="sup.s2gh.sub"></small></div>
+            <button type="button" class="btn btn-quiet btn-sm" id="btnRepGithub" data-i18n="sup.github"></button>
+          </li>
+          <li id="repStepTicket">
             <div><b data-i18n="sup.s3"></b><small data-i18n="sup.s3.sub"></small></div>
           </li>
         </ol>

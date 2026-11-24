@@ -15,8 +15,27 @@ const I18N = require('./src/i18n');
 const { Logger, buildReport, isInvite } = require('./lib/support');
 
 let logger = null;
-function supportConfig() {
+function localSupport() {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'soporte.json'), 'utf8')); } catch { return {}; }
+}
+let remoteSupport = null;
+let remoteAt = 0;
+/** Lee soporte.json de GitHub (así la invitación se cambia sin reinstalar) y, si no hay conexión, el local. */
+async function supportConfig() {
+  const local = localSupport();
+  if (Date.now() - remoteAt > 10 * 60 * 1000 && /^https:\/\/raw\.githubusercontent\.com\//.test(local.remote || '')) {
+    remoteAt = Date.now();
+    try {
+      const res = await fetch(local.remote, { signal: AbortSignal.timeout(4000), cache: 'no-store' });
+      if (res.ok) remoteSupport = await res.json();
+    } catch { /* sin conexión: se usa el local */ }
+  }
+  const r = remoteSupport || {};
+  return {
+    discordInvite: isInvite(r.discordInvite) ? r.discordInvite : local.discordInvite,
+    serverName: r.serverName || local.serverName || '',
+    issues: /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/issues\/new$/.test(local.issues || '') ? local.issues : '',
+  };
 }
 
 const t = (key, vars) => I18N.t(key, vars, (store && store.getSettings().uiLang) || 'es');
@@ -283,7 +302,21 @@ function registerIPC() {
     return ai.polishTranscript(args.texts, { context: args.context, settings: store.getSettings(), signal: ctrl.signal })
       .finally(() => args.jobId && jobs.delete(args.jobId));
   }));
-  ipcMain.handle('lyrics:align', safe('lyrics:align', ({ lines, words }) => alignLyrics(lines, words)));
+  ipcMain.handle('lyrics:align', safe('lyrics:align', ({ lines, words, trim }) => alignLyrics(lines, words, { trim })));
+  // Reconocer la canción por lo que se oye: la IA propone y LRCLIB da la letra oficial de cada propuesta.
+  ipcMain.handle('lyrics:identify', safe('lyrics:identify', async ({ text, title, artist, jobId }) => {
+    const ctrl = job(jobId);
+    try {
+      const guesses = await ai.identifySong(text, { title, artist, settings: store.getSettings(), signal: ctrl.signal });
+      const out = [];
+      const seen = new Set();
+      for (const g of guesses) {
+        const f = await findLyrics({ title: g.title, artist: g.artist, clip: true }, { signal: AbortSignal.timeout(12000) }).catch(() => null);
+        if (f && !seen.has(f.match.id)) { seen.add(f.match.id); out.push(f); }
+      }
+      return out;
+    } finally { if (jobId) jobs.delete(jobId); }
+  }));
   ipcMain.handle('ai:cancel', safe('ai:cancel', (jobId) => {
     const c = jobs.get(jobId);
     if (c) { c.abort(); jobs.delete(jobId); }
@@ -314,9 +347,9 @@ function registerIPC() {
   ipcMain.on('overlay:close', () => { if (overlay && !overlay.isDestroyed()) overlay.close(); });
 
   // ---------- soporte ----------
-  ipcMain.handle('support:info', safe('support:info', () => {
-    const c = supportConfig();
-    return { invite: isInvite(c.discordInvite) ? c.discordInvite : '', serverName: c.serverName || '', version: app.getVersion() };
+  ipcMain.handle('support:info', safe('support:info', async () => {
+    const c = await supportConfig();
+    return { invite: isInvite(c.discordInvite) ? c.discordInvite : '', serverName: c.serverName, hasIssues: Boolean(c.issues), version: app.getVersion() };
   }));
   ipcMain.handle('support:report', safe('support:report', ({ context, note }) => buildReport({
     version: app.getVersion(),
@@ -327,10 +360,18 @@ function registerIPC() {
     lang: store.getSettings().uiLang || 'es',
   })));
   ipcMain.handle('support:copy', safe('support:copy', (text) => { clipboard.writeText(String(text || '')); return true; }));
-  ipcMain.handle('support:discord', safe('support:discord', () => {
-    const c = supportConfig();
+  ipcMain.handle('support:discord', safe('support:discord', async () => {
+    const c = await supportConfig();
     if (!isInvite(c.discordInvite)) throw new Error(t('sup.noInvite'));
     shell.openExternal(c.discordInvite);
+    return true;
+  }));
+  // Alternativa mientras no haya invitación: un aviso en GitHub con el informe ya escrito.
+  ipcMain.handle('support:github', safe('support:github', async ({ title, body }) => {
+    const c = await supportConfig();
+    if (!c.issues) throw new Error(t('sup.noInvite'));
+    const url = `${c.issues}?title=${encodeURIComponent(String(title || 'Problema').slice(0, 120))}&body=${encodeURIComponent(String(body || '').slice(0, 6000))}`;
+    shell.openExternal(url);
     return true;
   }));
   ipcMain.handle('support:logs', safe('support:logs', () => shell.openPath(logger.dir)));

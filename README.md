@@ -18,7 +18,7 @@ Descarga Verso solo desde este repositorio. Si te pasan el instalador por otro s
 
 ## Primeros pasos
 
-Para buscar letras no hace falta nada más. Para **transcribir y traducir** necesitas una clave gratuita de Groq:
+Para buscar letras no hace falta nada más. Para **traducir, reconocer canciones de TikTok y transcribir** necesitas una clave gratuita de Groq. La app te la pide la primera vez que la abres:
 
 1. Entra en <https://console.groq.com/keys> y pulsa **Create API Key**.
 2. En Verso: **Ajustes → Traducción e IA**, pega la clave y pulsa **Probar conexión**.
@@ -26,7 +26,8 @@ Para buscar letras no hace falta nada más. Para **transcribir y traducir** nece
 ## Qué hace
 
 - **Letra sincronizada** desde [LRCLIB](https://lrclib.net) (gratis). Si la letra no tiene tiempos, Verso escucha el audio y la sincroniza palabra a palabra.
-- **Transcripción con IA** cuando no hay letra: podcasts, entrevistas, vídeos…
+- **Reconoce canciones sin nombre:** clips de TikTok, Reels, remixes o archivos con nombres raros. Verso escucha el audio, averigua qué canción es, comprueba que su letra oficial coincide con lo que se oye y se queda con el trozo que suena en el clip.
+- **Transcripción con IA** cuando no hay letra publicada: podcasts, entrevistas, vídeos…
 - **Traducción precisa:** traduce con la canción entera como contexto, una segunda IA revisa cada línea y tú puedes corregir cualquiera con doble clic.
 - **Original, traducción o las dos** a la vez.
 - **Subtítulos flotantes** siempre visibles, con atajo global `Ctrl + Shift + S`.
@@ -42,8 +43,9 @@ Formatos: MP3, M4A, AAC, WAV, FLAC, OGG, OPUS, WEBM, MP4, MOV y más.
 Cuando hay un error, el aviso trae el botón **Reportar** (también en **Ayuda → Reportar un problema**):
 
 1. **Copia el informe.** Lleva el error y datos técnicos. Tu clave y tus archivos nunca van en él.
-2. **Entra en nuestro servidor de Discord.**
-3. **Abre un ticket con MAX** y pega el informe.
+2. **Entra en nuestro servidor de Discord** y **abre un ticket con MAX** pegando el informe.
+
+Si el servidor no está disponible, el segundo paso abre un aviso aquí, en [Issues](../../issues), con el informe ya escrito.
 
 ## Privacidad y seguridad
 

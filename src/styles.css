@@ -739,3 +739,36 @@ html.rm .view { filter: none; }
 .tips ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
 .version { margin-top: 8px; }
 html.rm .report { transform: none !important; }
+
+/* ---------- Aviso cuando falta la clave ---------- */
+.key-cta {
+  margin: 22px clamp(32px, 6vw, 96px) 0; max-width: 640px; padding: 18px 20px; border-radius: 14px;
+  background: color-mix(in oklch, var(--butter) 10%, var(--bg-2)); display: grid; gap: 8px;
+}
+.key-cta b { font-size: 20px; letter-spacing: -0.01em; }
+.key-cta p { margin: 0; color: var(--ink-2); line-height: 1.55; }
+.key-cta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+.key-cta-live { color: var(--ink-3); font-size: 13.5px; }
+
+/* ---------- Clave en la primera apertura ---------- */
+.intro.step2 .intro-mark, .intro.step2 .intro-lyric, .intro.step2 .intro-pick { display: none; }
+.intro-key { display: grid; gap: 16px; max-width: 620px; -webkit-app-region: no-drag; }
+.intro.step2 .intro-key { animation: rise 520ms var(--ease-out); }
+.ik-title { margin: 0; font-size: clamp(30px, 2vw + 16px, 42px); letter-spacing: -0.025em; line-height: 1.1; }
+.ik-sub { margin: 0; color: var(--ink-2); font-size: 16px; line-height: 1.55; }
+.ik-steps { list-style: none; counter-reset: k; margin: 6px 0 0; padding: 0; display: grid; gap: 0; }
+.ik-steps li {
+  counter-increment: k; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 14px 0 14px 42px; border-top: 1px solid color-mix(in oklch, var(--line) 55%, transparent); font-weight: 600;
+}
+.ik-steps li::before {
+  content: counter(k); position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-3); font-size: 13px;
+}
+.ik-steps input {
+  flex: 1; max-width: 320px; height: 40px; padding: 0 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); font: inherit; font-weight: 500; user-select: text;
+}
+.ik-steps input:focus { border-color: var(--butter); outline: none; }
+.ik-error { margin: 0; color: var(--danger); font-size: 14px; }
+.ik-actions { display: flex; gap: 8px; margin-top: 4px; }

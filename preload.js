@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('verso', {
     read: call('file:read'),
     pathFor: (file) => { try { return webUtils.getPathForFile(file); } catch { return ''; } },
   },
-  lyrics: { find: call('lyrics:find'), import: call('lyrics:import'), align: call('lyrics:align') },
+  lyrics: { find: call('lyrics:find'), import: call('lyrics:import'), align: call('lyrics:align'), identify: call('lyrics:identify') },
   ai: {
     transcribe: call('ai:transcribe'),
     translate: call('ai:translate'),
@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld('verso', {
     report: call('support:report'),
     copy: call('support:copy'),
     discord: call('support:discord'),
+    github: call('support:github'),
     logs: call('support:logs'),
     logError: (e) => ipcRenderer.send('log:error', e),
     onCrash: (fn) => ipcRenderer.on('support:crash', (_e, c) => fn(c)),

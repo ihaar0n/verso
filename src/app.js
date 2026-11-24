@@ -190,8 +190,8 @@
         if (done) return;
         done = true;
         clearInterval(swapTimer);
-        intro.classList.add('out');
-        setTimeout(() => { intro.hidden = true; }, 340);
+        // Si se ha elegido idioma, la intro sigue abierta por si falta el paso de la clave.
+        if (!lang) hideIntro();
         resolve(lang);
       };
 
@@ -232,6 +232,46 @@
         let n = 0;
         swapTimer = setInterval(() => { swap(); if (++n >= 5) clearInterval(swapTimer); }, 2600);
       }
+    });
+  }
+
+  function hideIntro() {
+    const intro = $('intro');
+    intro.classList.add('out');
+    setTimeout(() => { intro.hidden = true; }, 340);
+  }
+
+  /** Paso 2 de la primera apertura: pegar la clave gratis de Groq. */
+  function keyStep() {
+    return new Promise((resolve) => {
+      const intro = $('intro');
+      $('introKey').hidden = false;
+      intro.classList.add('step2');
+      const input = $('obKey'), err = $('obError'), save = $('obSave');
+      setTimeout(() => input.focus(), 120);
+      $('obOpen').onclick = () => api.openExternal('https://console.groq.com/keys');
+      $('obLater').onclick = () => resolve(false);
+      const submit = async () => {
+        const key = input.value.trim();
+        err.hidden = true;
+        if (!key) { err.textContent = T('ob.empty'); err.hidden = false; input.focus(); return; }
+        save.disabled = true;
+        save.textContent = T('ob.checking');
+        try {
+          state.settings = await call(api.settings.set({ apiKey: key, provider: 'groq' }));
+          await call(api.settings.test());
+          applySettings();
+          resolve(true);
+        } catch (e) {
+          err.textContent = e.message;
+          err.hidden = false;
+          input.select();
+        }
+        save.disabled = false;
+        save.textContent = T('ob.save');
+      };
+      save.onclick = submit;
+      input.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
     });
   }
 
@@ -358,34 +398,40 @@
   }
 
   async function findAndProcess(job, query) {
-    const canAI = state.settings.hasKey;
-    stepState('lyrics', 'active');
+    const canAI = state.settings.hasKey && Boolean(state.buffer);
+    const dur = state.cur.duration || 0;
+    // Un clip de TikTok o Reels dura poco: sus tiempos no coinciden con los de la canción entera.
+    const clip = dur > 0 && dur < 100;
+    stepState('lyrics', 'active', clip ? T('note.clip') : '');
     progress(null);
     let found = null;
     try {
-      found = await call(api.lyrics.find({ ...query, duration: state.cur.duration }));
+      found = await call(api.lyrics.find({ ...query, duration: dur, clip }));
     } catch {
       stepState('lyrics', 'done', T('note.lrclibOffline'));
     }
     if (state.job !== job) return;
+    // El archivo es un trozo de la canción si dura bastante menos que ella.
+    const partial = clip || Boolean(found && found.match.duration && dur && found.match.duration - dur > 20);
 
-    if (found && found.synced) {
-      // La mejor fuente: letra oficial ya sincronizada.
+    if (found && found.synced && !partial) {
+      // La mejor fuente: letra oficial ya sincronizada con la canción completa.
       stepState('lyrics', 'done', `${found.match.artist}, ${found.match.title}`);
       stepState('transcribe', 'skip');
       Object.assign(state.cur, { lines: found.lines, synced: true, source: 'lrclib', lrclibId: found.match.id });
-    } else if (canAI && state.buffer) {
-      stepState('lyrics', 'done', T(found ? 'note.plainOnly' : 'note.noLrclib'));
-      // Si hay letra oficial sin tiempos, se usa su texto exacto con los tiempos del audio.
-      await transcribeCurrent(job, found ? found.lines : null);
+    } else if (canAI) {
+      stepState('lyrics', 'done', found ? `${found.match.artist}, ${found.match.title}` : T('note.noLrclib'));
+      // Se escucha el audio: con letra oficial se le ponen los tiempos reales; sin ella, se reconoce la canción.
+      await transcribeCurrent(job, found ? found.lines : null, { trim: partial, identify: true, query });
       if (state.job !== job) return;
     } else if (found) {
-      stepState('lyrics', 'done', T('note.plain'));
-      stepState('transcribe', 'skip');
-      Object.assign(state.cur, { lines: found.lines, synced: false, source: 'lrclib-plain' });
+      stepState('lyrics', 'done', `${found.match.artist}, ${found.match.title}`);
+      stepState('transcribe', 'skip', T('note.noKey'));
+      // Sin clave no se puede saber qué trozo suena en un clip: se muestra la letra sin seguirla.
+      Object.assign(state.cur, { lines: found.lines, synced: found.synced && !partial, source: found.synced && !partial ? 'lrclib' : 'lrclib-plain' });
     } else {
       stepState('lyrics', 'done', T('note.notFound'));
-      stepState('transcribe', 'skip', T(canAI ? 'note.noAudio' : 'note.noKey'));
+      stepState('transcribe', 'skip', T(state.settings.hasKey ? 'note.noAudio' : 'note.noKey'));
       stepState('translate', 'skip');
       stepState('review', 'skip');
       state.cur.lines = [];
@@ -400,17 +446,16 @@
     showLyrics({ play: true });
   }
 
-  /** Escucha el audio. officialLines: letra exacta sin tiempos para alinear con lo que se oye. */
-  async function transcribeCurrent(job, officialLines = null) {
-    stepState('transcribe', 'active');
+  /** Escucha todo el audio por trozos. Devuelve { lines, words, lang } o null si se canceló. */
+  async function listen(job, hintLines) {
     const lines = [];
     const words = [];
     let lang = null;
     const total = state.buffer.duration;
     progress(0);
-    const prompt0 = officialLines ? officialLines.slice(0, 6).map((l) => l.text).join(' ') : '';
+    const prompt0 = hintLines ? hintLines.slice(0, 6).map((l) => l.text).join(' ') : '';
     for await (const chunk of A.wavChunks(state.buffer)) {
-      if (state.job !== job) return;
+      if (state.job !== job) return null;
       const r = await call(api.ai.transcribe({
         jobId: job, wav: chunk.wav, offset: chunk.offset, language: lang || undefined,
         prompt: lines.length ? lines.slice(-3).map((l) => l.text).join(' ') : prompt0,
@@ -422,28 +467,72 @@
       progress(frac);
       stepState('transcribe', 'active', T('note.percent', { n: Math.round(frac * 100) }));
     }
-    if (!lines.length) throw Object.assign(new Error(T('t.noSpeech')), { kind: 'empty' });
+    return { lines, words, lang };
+  }
+
+  /** Pone los tiempos del audio a una letra oficial. Solo vale si de verdad coincide con lo que se oye. */
+  async function alignTo(official, heard, trim) {
+    if (!official?.length || !heard.words.length) return null;
+    const al = await call(api.lyrics.align({ lines: official.map((l) => ({ text: l.text })), words: heard.words, trim }));
+    const min = trim ? 0.5 : 0.45;
+    return al && al.lines.length && al.quality >= min && al.matched >= 4 ? al : null;
+  }
+
+  /**
+   * Escucha el audio. officialLines: letra exacta sin tiempos (o de la canción entera, si es un clip).
+   * identify: si no hay letra que encaje, intenta reconocer la canción por lo que se oye.
+   */
+  async function transcribeCurrent(job, officialLines = null, { trim = false, identify = false, query = {} } = {}) {
+    stepState('transcribe', 'active');
+    const heard = await listen(job, officialLines);
+    if (!heard || state.job !== job) return;
+    if (!heard.lines.length) throw Object.assign(new Error(T('t.noSpeech')), { kind: 'empty' });
 
     // 1) Letra oficial + tiempos reales.
-    if (officialLines && words.length) {
-      const al = await call(api.lyrics.align({ lines: officialLines, words }));
-      if (al && al.quality >= 0.45) {
-        Object.assign(state.cur, { lines: al.lines, synced: true, source: 'aligned', lang });
-        stepState('transcribe', 'done', T('note.aligned'));
-        return;
-      }
+    const al = await alignTo(officialLines, heard, trim);
+    if (al) {
+      Object.assign(state.cur, { lines: al.lines, synced: true, source: 'aligned', lang: heard.lang });
+      stepState('transcribe', 'done', T('note.aligned'));
+      return;
     }
 
-    // 2) Solo transcripción: se corrigen con cuidado las palabras mal oídas.
-    let final = lines;
+    // 2) Reconocer la canción (TikTok, archivos sin nombre…) y comprobarlo con su letra oficial.
+    if (identify) {
+      stepState('transcribe', 'active', T('note.identifying'));
+      progress(null);
+      try {
+        const cands = await call(api.lyrics.identify({
+          jobId: job, text: heard.lines.map((l) => l.text).join('\n'), title: query.title || state.cur.name, artist: query.artist,
+        }));
+        let best = null;
+        for (const c of cands || []) {
+          if (state.job !== job) return;
+          const a = await alignTo(c.lines, heard, trim);
+          if (a && (!best || a.quality > best.a.quality)) best = { c, a };
+        }
+        if (best) {
+          Object.assign(state.cur, {
+            title: best.c.match.title, artist: best.c.match.artist,
+            lines: best.a.lines, synced: true, source: 'identified', lang: heard.lang, lrclibId: best.c.match.id,
+          });
+          stepState('lyrics', 'done', `${best.c.match.artist}, ${best.c.match.title}`);
+          stepState('transcribe', 'done', T('note.identified'));
+          $('workSong').textContent = by(best.c.match.title, best.c.match.artist);
+          return;
+        }
+      } catch (e) { if (e.cancelled) throw e; /* si no se reconoce, se usa lo que se oyó */ }
+    }
+
+    // 3) Solo lo que se oyó, corrigiendo con cuidado las palabras mal entendidas.
+    let final = heard.lines;
     stepState('transcribe', 'active', T('note.polishing'));
     progress(null);
     try {
-      const fixed = await call(api.ai.polish({ jobId: job, texts: lines.map((l) => l.text), context: songContext() }));
-      if (fixed) final = lines.map((l, i) => ({ ...l, text: fixed[i] || l.text }));
+      const fixed = await call(api.ai.polish({ jobId: job, texts: heard.lines.map((l) => l.text), context: songContext() }));
+      if (fixed) final = heard.lines.map((l, i) => ({ ...l, text: fixed[i] || l.text }));
     } catch (e) { if (e.cancelled) throw e; /* si falla el pulido, se queda la transcripción tal cual */ }
-    Object.assign(state.cur, { lines: final, synced: true, source: 'whisper', lang });
-    stepState('transcribe', 'done', lang ? T('note.inLang', { lang: I.langName(lang) }) : '');
+    Object.assign(state.cur, { lines: final, synced: true, source: 'whisper', lang: heard.lang });
+    stepState('transcribe', 'done', heard.lang ? T('note.inLang', { lang: I.langName(heard.lang) }) : '');
   }
 
   async function translateCurrent(job) {
@@ -535,6 +624,7 @@
     fillSongHead();
     $('unsyncedNote').hidden = !(c.lines.length && !c.synced);
     $('btnSyncAI').hidden = !state.settings.hasKey;
+    $('keyCta').hidden = c.lines.length > 0 || state.settings.hasKey;
     const sf = $('searchForm');
     sf.hidden = c.lines.length > 0;
     if (!c.lines.length) {
@@ -1021,13 +1111,13 @@
       if (!state.buffer) return toast(T('t.cantDecode'), { error: true });
       // Si ya hay letra sin tiempos, se conserva su texto y se sincroniza con el audio.
       const official = c.lines.length && !c.synced ? c.lines.map((l) => ({ text: l.text })) : null;
-      await processAgain({ transcribe: true, official });
+      await processAgain({ transcribe: true, official, identify: !official });
       return;
     }
     if (act === 'retranslate') await processAgain({});
   }
 
-  async function processAgain({ transcribe = false, official = null }) {
+  async function processAgain({ transcribe = false, official = null, identify = false }) {
     const job = newJob();
     el.audio.pause();
     resetSteps(by(state.cur.title, state.cur.artist));
@@ -1035,7 +1125,7 @@
     stepState('lyrics', transcribe ? 'skip' : 'done');
     setView('work');
     try {
-      if (transcribe) await transcribeCurrent(job, official);
+      if (transcribe) await transcribeCurrent(job, official, { identify, trim: (state.cur.duration || 0) < 100, query: { title: state.cur.title, artist: state.cur.artist } });
       else stepState('transcribe', 'skip');
       if (state.job !== job) return;
       await translateCurrent(job);
@@ -1059,7 +1149,7 @@
     stepState('read', 'done');
     setView('work');
     try {
-      const found = await call(api.lyrics.find({ title, artist, duration: state.cur.duration }));
+      const found = await call(api.lyrics.find({ title, artist, duration: state.cur.duration, clip: (state.cur.duration || 0) < 100 }));
       if (state.job !== job) return;
       if (!found) {
         toast(T('t.lrclibMissing'), { error: true });
@@ -1069,11 +1159,12 @@
       }
       Object.assign(state.cur, { title: found.match.title, artist: found.match.artist, lang: null });
       stepState('lyrics', 'done', `${found.match.artist}, ${found.match.title}`);
-      if (found.synced) {
-        Object.assign(state.cur, { lines: found.lines, synced: true, source: 'lrclib' });
+      const isClip = (state.cur.duration || 0) < 100 || (found.match.duration && state.cur.duration && found.match.duration - state.cur.duration > 20);
+      if (found.synced && !(isClip && state.settings.hasKey && state.buffer)) {
+        Object.assign(state.cur, { lines: found.lines, synced: !isClip, source: isClip ? 'lrclib-plain' : 'lrclib' });
         stepState('transcribe', 'skip');
       } else if (state.settings.hasKey && state.buffer) {
-        await transcribeCurrent(job, found.lines);
+        await transcribeCurrent(job, found.lines, { trim: (state.cur.duration || 0) < 100 });
       } else {
         Object.assign(state.cur, { lines: found.lines, synced: false, source: 'lrclib-plain' });
         stepState('transcribe', 'skip');
@@ -1339,7 +1430,13 @@
     const key = form.apiKey.value.trim();
     if (key) patch.apiKey = key;
     state.settings = await call(api.settings.set(patch));
-    if (key) { form.apiKey.value = ''; form.apiKey.placeholder = T('set.keySaved'); }
+    if (key) {
+      form.apiKey.value = '';
+      form.apiKey.placeholder = T('set.keySaved');
+      if (!before.hasKey && state.cur && !state.cur.lines.length && state.buffer) {
+        toast(T('t.retryWithKey'), { action: { label: T('t.retryNow'), fn: () => { closeDrawer(); runAction('transcribe'); } } });
+      }
+    }
     applySettings();
     syncForm();
     flashSaved();
@@ -1428,7 +1525,7 @@
   const report = $('report');
 
   async function getSupportInfo() {
-    if (!supportInfo) supportInfo = await call(api.support.info()).catch(() => ({ invite: '', serverName: '', version: '' }));
+    supportInfo = await call(api.support.info()).catch(() => supportInfo || { invite: '', serverName: '', version: '', hasIssues: false });
     return supportInfo;
   }
 
@@ -1445,6 +1542,12 @@
     $('repNote').value = '';
     report.querySelectorAll('.report-steps li').forEach((li) => li.classList.remove('done'));
     $('btnRepCopy').querySelector('span').textContent = T('sup.copy');
+    // Con invitación: Discord + ticket. Sin ella: aviso en GitHub con el informe ya pegado.
+    const useGithub = !info.invite && info.hasIssues;
+    $('repStepDiscord').hidden = useGithub;
+    $('repStepTicket').hidden = useGithub;
+    $('repStepGithub').hidden = !useGithub;
+    if (useGithub) $('repIntro').textContent = T('sup.introGh');
     const d = $('btnRepDiscord');
     d.disabled = !info.invite;
     d.title = info.invite ? '' : T('sup.noInvite');
@@ -1474,6 +1577,14 @@
       $('btnRepDiscord').closest('li').classList.add('done');
     } catch (e) { toast(e.message, { error: true }); }
   };
+  $('btnRepGithub').onclick = async () => {
+    try {
+      const body = await buildReportText();
+      const title = `[${supportInfo?.version || ''}] ${(reportCtx?.message || T('sup.title')).slice(0, 90)}`;
+      await call(api.support.github({ title, body }));
+      $('btnRepGithub').closest('li').classList.add('done');
+    } catch (e) { toast(e.message, { error: true }); }
+  };
   // Cerrar al pulsar fuera del cuadro.
   report.addEventListener('click', (e) => { if (e.target === report) report.close(); });
 
@@ -1495,6 +1606,10 @@
   window.addEventListener('error', (e) => unexpected(e.filename ? e.filename.split('/').pop() + ':' + e.lineno : 'ventana', e.error || e.message));
   window.addEventListener('unhandledrejection', (e) => unexpected('promesa', e.reason));
   api.support.onCrash((c) => unexpected(c.where, { message: c.message }));
+
+  // ---------- aviso sin clave ----------
+  $('btnCtaKey').onclick = () => openDrawer('ai');
+  $('btnCtaLive').onclick = () => startLive();
 
   // ---------- etiquetas de los botones de icono ----------
   const tip = document.createElement('div');
@@ -1572,8 +1687,12 @@
     setView('empty');
     if (document.fonts) document.fonts.ready.then(() => { buildSegInd(); placeSeg(); });
     const lang = await runIntro();
-    if (lang) await chooseLang(lang);
+    if (lang) {
+      await chooseLang(lang);
+      if (!state.settings.hasKey && state.settings.translator !== 'ollama') await keyStep();
+      hideIntro();
+    }
   })();
 
-  window.__verso = { state, setView, openItem, showLyrics, addLiveCue, setMode, openDrawer, startEdit, openReport, errorToast };
+  window.__verso = { state, setView, openItem, openFile, keyStep, showLyrics, addLiveCue, setMode, openDrawer, startEdit, openReport, errorToast };
 })();
