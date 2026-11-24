@@ -28,17 +28,33 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Comprobar vulnerabilidades graves
         run: npm audit --audit-level=critical --omit=dev || echo "Revisar npm audit"
-      - name: Etiquetar la versión
+      - name: Crear la versión en Releases
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           V="v$(node -p "require('./package.json').version")"
-          if git ls-remote --exit-code --tags origin "refs/tags/$V" > /dev/null; then
-            echo "La etiqueta $V ya existe"
+          # Se crea antes de subir los archivos para que no aparezcan dos versiones iguales.
+          if gh release view "$V" > /dev/null 2>&1; then
+            echo "La versión $V ya existe"
           else
-            git tag "$V"
-            git push origin "$V"
+            gh release create "$V" --target "$GITHUB_SHA" --title "Verso ${V#v}" \
+              --notes "Descarga **Verso-Setup-${V#v}.exe**, ábrelo e instala. Si Windows avisa, pulsa *Más información → Ejecutar de todas formas*."
           fi
       - name: Crear y publicar el instalador
         run: npx electron-builder --win nsis --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Ocultar versiones sin instalador
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Si alguna versión publicada quedó sin el .exe (por ejemplo, un duplicado), se pasa a borrador. No se borra nada.
+          gh api "repos/${{ github.repository }}/releases?per_page=50" \
+            --jq '.[] | select(.draft == false) | [.id, .tag_name, ([.assets[].name | select(endswith(".exe"))] | length)] | @tsv' |
+          while read -r id tag exes; do
+            if [ "$exes" = "0" ]; then
+              gh api -X PATCH "repos/${{ github.repository }}/releases/$id" -F draft=true > /dev/null && echo "Oculta: $tag ($id)"
+            fi
+          done

@@ -1,7 +1,7 @@
 {
   "name": "verso",
   "productName": "Verso",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Letras sincronizadas, traducción y subtítulos para cualquier canción o audio.",
   "main": "main.js",
   "author": "ax¡d",
